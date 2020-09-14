@@ -6,13 +6,29 @@
 // @author       You
 // @match        https://yandex.ru/*
 // @match        https://xn----7sbab5aqcbiddtdj1e1g.xn--p1ai/*
+// @match        https://crushdrummers.ru/*
 // @grant        none
 // ==/UserScript==
-let keywords = ["Гобой", "Как звучит флейта", "Кларнет", 'Теория музыки', 'Саксофон', 'Тромбон', 'Валторна'];
+
+let sites = {
+    "xn----7sbab5aqcbiddtdj1e1g.xn--p1ai":['Гобой', 'Как звучит флейта', 'Кларнет', 'Саксофон', 'Тромбон', 'Валторна'],
+    "crushdrummers.ru":['Барабанное шоу', 'Заказать барабанное шоу', 'Шоу барабанщиков в Москве']
+};
+let site = Object.keys(sites)[getRandom(0,Object.keys(sites).length)];
+
+let keywords = sites[site];
 let keyword = keywords[getRandom(0, keywords.length)];
 let text = document.getElementsByClassName("input__control input__input mini-suggest__input")[0]; //обращение к поисковой строке
 let i = 0;
 let links = document.links;
+
+if (text != undefined) {
+    document.cookie = "site="+site;
+} else if (location.hostname == "yandex.ru"){
+    site = getCookie("site");
+}else{
+    site = location.hostname;
+}
 
 if (text != undefined) {
   //document.getElementsByClassName("input__control input__input mini-suggest__input")[0].value = keyword; (было, когда набирали слово сразу целиком)
@@ -25,13 +41,13 @@ if (text != undefined) {
         }
     },1000);
 //а если мы уже на стрице сайта - кликаем по разным ссылкам(80%) с рандомной паузой и в 20% случаев возвращаемся на Яндекс
-}else if(location.hostname=="xn----7sbab5aqcbiddtdj1e1g.xn--p1ai"){
+}else if(location.hostname==site){
     setInterval(()=>{
         let index = getRandom(0,links.length);
         if (getRandom(0, 101)>=80){
             location.href='https://www.yandex.com/';
         }
-        else if (links[index].href.indexOf ("xn----7sbab5aqcbiddtdj1e1g.xn--p1ai") !=-1){
+        else if (links[index].href.indexOf (site) !=-1){
             links[index].click();
         }
 
@@ -46,7 +62,7 @@ if (text != undefined) {
 
 //если нужная ссылка на старнице найдена, кликаем по ней с рандомной задержкой
     for (let i = 0; i < links.length; i++) {
-        if (links[i].href.indexOf("xn----7sbab5aqcbiddtdj1e1g.xn--p1ai") != -1) {
+        if (links[i].href.indexOf(site) != -1) {
             let link = links[i];
             nextYandexPage = false;
             setTimeout(()=>{link.click();},getRandom(1000,4000));
@@ -69,4 +85,11 @@ if (text != undefined) {
 
 function getRandom(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
+}
+
+function getCookie(name) {
+  let matches = document.cookie.match(new RegExp(
+    "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+  ));
+  return matches ? decodeURIComponent(matches[1]) : undefined;
 }
